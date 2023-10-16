@@ -10,37 +10,19 @@ import { addParticipant } from '../store/actioncreator'
 import { removeParticipant } from '../store/actioncreator'
 
 const MeetHome = () => {
-
+	
 
 	const database = getDatabase(app);
 	const [data, setData] = useState(null);
 	const dataRef = ref(database, "/")
 
 
-	let [userName, setUserName] = useState(null);	
-	let participantsLength;
   useEffect(() => {
 
     const onDataChange = (snapshot) => {
       if (snapshot.exists()) {
         const newData = snapshot.val();
-       
-
-	if(newData){
-
-		const roomKey = Object.keys(newData)[Object.keys(newData).length-1]
-		console.log(roomKey,"roomKey")
-		console.log(newData[roomKey],"participants of that room")
-		participantsLength = Object.keys(newData[roomKey].participants).length
-		const firstOne = Object.keys(newData[roomKey].participants)[0]
-		newData[roomKey].participants[firstOne].preference.role = "host"
-		console.log(participantsLength,"participants length")
-       		setData(newData);
-
-	}
-	
-
-
+        setData(newData);
       } else {
         console.log("No data available");
         setData(null);
@@ -52,33 +34,23 @@ const MeetHome = () => {
     return () => {
       dataListener();
     };
-  }, [userName]);
+  }, []);
+
+	const [role, setRole] = useState("user")
 
 
+	let participantsLength;
+	if(data){
+		const roomKey = Object.keys(data)[Object.keys(data).length-1]
+		console.log(roomKey,"roomKey")
+		console.log(data[roomKey],"participants of that room")
+		participantsLength = Object.keys(data[roomKey].participants).length
+		console.log(participantsLength,"participants length")
+	}
 	
-	const handleBeforeUnload = (event) => {
-	  // Your cleanup logic here, like removing Firebase references
-	  if (userRef.current) {
-	    try {
-	      remove(userRef.current);
-	    } catch (error) {
-	      console.error("Error while removing userRef:", error);
-	    }
-	  }
-
-	  // You can provide a confirmation message to the user
-	  //event.returnValue = "You have unsaved changes. Are you sure you want to leave?";
-	};
 
 
-	useEffect(() => {
-	  window.addEventListener("beforeunload", handleBeforeUnload);
-
-	  return () => {
-	    window.removeEventListener("beforeunload", handleBeforeUnload);
-	  };
-	}, []);
-
+	let [userName, setUserName] = useState(null);	
 	console.log(userName)
 	const userNameSetRef = useRef(false);
 
@@ -109,44 +81,39 @@ const MeetHome = () => {
 		console.log(dbRef.key,"eita")
 
 	}
-	//console.log(dbRef)
+	console.log(dbRef)
 
 	
 	const auth = getAuth(app);
 	let connectedRef = ref(database, ".info/connected")
 	const participantRef = child(dbRef,"participants")
-//	console.log(connectedRef,"eita connectedRef")
-//	console.log(participantRef,"eita participantRef")
-//	console.log(participantRef._path.pieces_[0],"room key")
+	console.log(connectedRef,"eita connectedRef")
+	console.log(participantRef,"eita participantRef")
+	console.log(participantRef._path.pieces_[0],"room key")
 	let userRef = useRef(null);
 
-//	console.log(auth,"eita auth")
-
-	let defaultPreferences = {
-					audio: true,
-					video: false,
-					screen: false,
-					role: "user"
-
-	};
+	console.log(auth,"eita auth")
 
 	useEffect(()=>{
 	//	if (connectedRef.key == "connected") {
 	//	connectedRef.on('value', (snap) => {
 			//if(snap.val()){
 
+
 			if(auth){
 				console.log("User is connected")
-
-				
-
-				
+				const defaultPreferences = {
+					audio: true,
+					video: false,
+					screen: false,
+					role: role
+				}
 				userRef.current = push(participantRef,{
 					userName,
 					preference: defaultPreferences
 				})
-				console.log(userRef.current,"eita userRef")
-				console.log(userRef.current?.key,"participant key")
+				console.log(userRef,"eita userRef")
+				console.log(userRef.key,"participant key")
 				//userRef.onDisconnect().remove();
 					
 				{/*
@@ -179,26 +146,10 @@ const MeetHome = () => {
 		}
 			
 	},[userName])
-
-	let presentRole;
-	let presentKey = userRef.current?.key;
-	if(data){
-	const roomKey = Object.keys(data)[Object.keys(data).length-1]
-	const presentLength = Object.keys(data[roomKey].participants).length
-	const lastOne = Object.keys(data[roomKey].participants)[presentLength-1]
-	presentRole = data[roomKey].participants[presentKey].preference.role
-	console.log(presentRole,"present Role")
-	}
-
-
-
-
-
 	return (
 		<div>
 			<div className="mx-auto w-fit">
 				{userName}
-				{presentRole}	
 			</div>
 
 		</div>
